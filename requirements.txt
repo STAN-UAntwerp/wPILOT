@@ -1,0 +1,9 @@
+denseweight==0.1.2
+matplotlib==3.10.0
+networkx==3.4.2
+numba==0.60.0
+numpy==2.0.2
+pandas==2.2.3
+scikit_learn==1.6.0
+scipy==1.15.0
+pydot==4.0.0
