@@ -1,10 +1,10 @@
-# Fast Weighted Linear Model Trees
+# Fast (Weighted) Linear Model Trees
 
-This repository contains the implementation for the Weighted PIecewise Linear Organic Tree (PILOT), a linear model tree algorithm
-first proposed in the paper Raymaekers, J., Rousseeuw, P. J., Verdonck, T., & Yao, R. (2024). Fast linear model trees by
+This repository contains the implementation for the PIecewise Linear Organic Tree (PILOT), a linear model tree algorithm
+proposed in the paper Raymaekers, J., Rousseeuw, P. J., Verdonck, T., & Yao, R. (2024). Fast linear model trees by
 PILOT. Machine Learning, 1-50. https://doi.org/10.1007/s10994-024-06590-3.
 
-The code implements the weighted extension of the PILOT algorithm to support observation
+The code also implements the weighted extension of the PILOT algorithm to support observation
 weights while maintaining the same computational complexity, as proposed in the paper Debois, F., Raymaekers, 
 J., Servotte, T. & Verdonck, T. (2025). Fast weighted linear model trees. _Under Review_
 

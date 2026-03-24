@@ -112,6 +112,8 @@ def run_benchmark(dataset_names: list[str], settings: BenchmarkSettings,
                                 "Parameters": json.dumps(parameters),
                                 "mse": result.mse,
                                 "r2": result.r2,
+                                "node_count": sum(result.node_count.values()),
+                                "node_count_no_lin": sum(v for k, v in result.node_count.items() if k != "lin"),
                                 "fit_duration": result.fit_duration,
                                 "predict_duration": result.predict_duration,
                             })
@@ -148,6 +150,8 @@ def run_benchmark(dataset_names: list[str], settings: BenchmarkSettings,
             'Method': 'first',
             'mse': ['mean', 'std'],
             'r2': ['mean', 'std'],
+            'node_count': ['mean', 'max'],
+            'node_count_no_lin': ['mean', 'max'],
             'fit_duration': 'mean',
             'predict_duration': 'mean'
         })
@@ -168,8 +172,9 @@ def run_benchmark(dataset_names: list[str], settings: BenchmarkSettings,
 
     df_final = df_final[[
         'Dataset', 'Number_of_samples', 'Number_of_features',
-        'Method', 'Parameters', 'mse_mean', 'mse_std', 'r2_mean', 'r2_std', 'fit_duration_mean',
-        'predict_duration_mean',
+        'Method', 'Parameters', 'mse_mean', 'mse_std', 'r2_mean', 'r2_std',
+        'node_count_mean','node_count_max', 'node_count_no_lin_mean', 'node_count_no_lin_max',
+        'fit_duration_mean', 'predict_duration_mean',
         'Method_call', 'optimal'
     ]]
     df_final.to_csv(os.path.join(directory_folder, "final_results_" + id_results + ".csv"), index=False)
@@ -222,6 +227,7 @@ benchmark_settings = BenchmarkSettings()
 #benchmark_settings.add_method("Pilot",{"max_depth": 12, "df_settings": DEFAULT_DF_SETTINGS})
 benchmark_settings.add_method("Pilot",{"max_depth": max_depth_list, "df_settings": df_settings_list})
 benchmark_settings.add_method("coPilot_avg", {"max_n_estimators": 2, "max_depth": max_depth_list, "alpha": alpha_list})
+benchmark_settings.add_method("XGBoost", {"max_n_estimators": 2, "max_depth": max_depth_list, "alpha": alpha_list})
 
 datasets_names = ['556_analcatdata_apnea2', '557_analcatdata_apnea1', '522_pm10', '1028_SWD',
                   '485_analcatdata_vehicle', '547_no2', '665_sleuth_case2002', '210_cloud',

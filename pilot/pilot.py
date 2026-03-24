@@ -833,6 +833,8 @@ class PILOT(BaseEstimator):
             y,
             w=None,
             normalize_w = True,
+            min_absolute_weight = None,
+            max_absolute_weight = None,
             categorical=np.array([-1]),
             max_features_considered: Optional[int] = None,
             **kwargs,
@@ -872,6 +874,14 @@ class PILOT(BaseEstimator):
             w = np.array(w)
         elif w.ndim == 1:
             w = w.reshape((-1, 1))
+
+        if min_absolute_weight is not None:
+            mask = w < min_absolute_weight
+            w[mask] = min_absolute_weight
+
+        if max_absolute_weight is not None:
+            mask = w > max_absolute_weight
+            w[mask] = max_absolute_weight
 
         if normalize_w:
             if np.sum(w) != 0:

@@ -37,13 +37,14 @@ def plot_models_along_path(tree, idx_point, X_train, y_res, directory_folder, w 
     plt.scatter(X_train[:, feature_idx], y_res, s=scaled_weights, color='slategrey')
     plt.scatter(X_train[idx_point, feature_idx], y_res[idx_point], s=60+scaled_weights[idx_point],
                 facecolors='r', marker='*')
-
+    
+    x_label_string = r"x^{(" + str(feature_idx+1) + r")}"
     if tree.node == "lin":
         x = [min_x, max_x]
         y = [tree.lm_l[1] + tree.lm_l[0]*x for x in x]
         plt.plot(x,y, color=COLOR_NODES[tree.node], linewidth=3)
-        plt.title(f"Depth = {tree.model_depth} - Node: LIN - Feature: $X_{feature_idx}$")
-        plt.xlabel(f"$X_{feature_idx}$")
+        plt.title(f"Depth = {tree.model_depth} - Node: LIN - Feature: ${x_label_string}$")
+        plt.xlabel(f"${x_label_string}$")
         y_label = "y" if tree.model_depth == 1 else "Residuals"
         plt.ylabel(y_label)
         plt.savefig(directory_folder + f"depth={tree.model_depth}_{tree.node}.pdf", bbox_inches='tight')
@@ -63,8 +64,8 @@ def plot_models_along_path(tree, idx_point, X_train, y_res, directory_folder, w 
         y2 = [tree.lm_r[1] + tree.lm_r[0] * x for x in x2]
         plt.plot(x1, y1, x2, y2, color=COLOR_NODES[tree.node], linewidth=3)
         node_name = str(tree.node).upper()
-        plt.title(f"Depth = {tree.model_depth} - Node: {node_name} - Feature: $X_{feature_idx}$ - Pivot: {np.round(pivot,2)}")
-        plt.xlabel(f"$X_{feature_idx}$")
+        plt.title(f"Depth = {tree.model_depth} - Node: {node_name} - Feature: ${x_label_string}$ - Pivot: {np.round(pivot,2)}")
+        plt.xlabel(f"${x_label_string}$")
         y_label = "y" if tree.model_depth == 1 else "Residuals"
         plt.ylabel(y_label)
         plt.savefig(directory_folder + f"depth={tree.model_depth}_{tree.node}.pdf", bbox_inches='tight')

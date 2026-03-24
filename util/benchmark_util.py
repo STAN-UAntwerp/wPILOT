@@ -7,6 +7,8 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import ParameterGrid
 from sklearn.tree import DecisionTreeRegressor
 import numpy as np
+import xgboost as xgb
+from typing import Dict
 
 from pilot.pilot import PILOT
 from pilot.copilot import coPILOT
@@ -131,6 +133,7 @@ class FitResult:
     mse: float
     fit_duration: float
     predict_duration: float
+    node_count: Dict[str, int] = None
 
 def fit_cart(train_dataset: Data, test_dataset: Data, max_depth=12, **parameters) -> FitResult:
     t1 = time.time()
@@ -160,8 +163,9 @@ def fit_pilot(train_dataset: Data, test_dataset: Data, **parameters) -> FitResul
 
     r2 = float(r2_score(test_dataset.y, y_pred))
     mse = float(mean_squared_error(test_dataset.y, y_pred))
+    node_count = model.recursion_counter
     return FitResult(
-        r2=r2, mse=mse, fit_duration=t2 - t1, predict_duration=t3 - t2
+        r2=r2, mse=mse, fit_duration=t2 - t1, predict_duration=t3 - t2, node_count=node_count
     )
 
 def fit_copilot_avg(train_dataset: Data, test_dataset: Data, alpha = 1, **parameters) -> FitResult:
@@ -179,14 +183,81 @@ def fit_copilot_avg(train_dataset: Data, test_dataset: Data, alpha = 1, **parame
 
     r2 = float(r2_score(test_dataset.y, y_pred))
     mse = float(mean_squared_error(test_dataset.y, y_pred))
+    node_count1 = model.pilot_trees[0].recursion_counter
+    node_count2 = model.pilot_trees[1].recursion_counter
+    node_count = {
+        k: node_count1[k] + node_count2[k] for k in set(node_count1)
+    }
     return FitResult(
-        r2=r2, mse=mse, fit_duration=t2 - t1, predict_duration=t3 - t2
+        r2=r2, mse=mse, fit_duration=t2 - t1, predict_duration=t3 - t2, node_count = node_count
+    )
+
+def fit_xgboost(train_dataset: Data, test_dataset: Data, alpha = 1, **parameters) -> FitResult:
+    num_boost_round = parameters["max_n_estimators"]
+    max_depth = parameters["max_depth"]
+    xgb_params = {
+        'objective': "reg:squarederror",
+        'learning_rate': alpha,
+        'max_depth': max_depth,
+        'random_state': 42,
+    }
+
+    for col in train_dataset.cat_ids:
+        uniques, train_dataset.X[:, col] = np.unique(train_dataset.X[:, col], return_inverse=True)
+        test_dataset.X[:, col] = np.searchsorted(uniques, test_dataset.X[:, col])
+
+    feature_types = [
+        "c" if i in train_dataset.cat_ids else "q"
+        for i in range(train_dataset.n_features())
+    ]
+    dmatrix = xgb.DMatrix(
+        train_dataset.X,
+        label=train_dataset.y,
+        feature_types=feature_types,
+        enable_categorical=True,
+    )
+    dmatrix_test = xgb.DMatrix(
+        test_dataset.X,
+        feature_types=feature_types,
+        enable_categorical=True,
+    )
+
+    t1 = time.time()
+    model = xgb.train(
+        xgb_params,
+        dmatrix,
+        num_boost_round=num_boost_round,
+    )
+    t2 = time.time()
+    y_pred = model.predict(dmatrix_test)
+    t3 = time.time()
+
+    r2 = float(r2_score(test_dataset.y, y_pred))
+    mse = float(mean_squared_error(test_dataset.y, y_pred))
+
+    dump = model.get_dump(dump_format="json")
+
+    node_count = 0
+    for tree in dump:
+        tree_json = json.loads(tree)
+
+        stack = [tree_json]
+        while stack:
+            node = stack.pop()
+            if "leaf" not in node:  # exclude leaves
+                node_count += 1
+                stack.append(node["children"][0])
+                stack.append(node["children"][1])
+
+    return FitResult(
+        r2=r2, mse=mse, fit_duration=t2 - t1, predict_duration=t3 - t2, node_count = {'pcon': node_count}
     )
 
 METHOD_FUNCTIONS = {
     "Cart": fit_cart,
     "Pilot": fit_pilot,
     "coPilot_avg": fit_copilot_avg,
+    "XGBoost": fit_xgboost
     }
 
 class BenchmarkSettings:
