@@ -6,7 +6,7 @@ PILOT. Machine Learning, 1-50. https://doi.org/10.1007/s10994-024-06590-3.
 
 The code also implements the weighted extension of the PILOT algorithm to support observation
 weights while maintaining the same computational complexity, as proposed in the paper Debois, F., Raymaekers, 
-J., Servotte, T. & Verdonck, T. (2025). Fast weighted linear model trees. _Under Review_
+J., Servotte, T. & Verdonck, T. (2026). Fast weighted linear model trees. Advances in Data Analysis and Classification, 1–35, https://doi.org/10.1007/s11634-026-00683-8.
 
 ## Overview
 
